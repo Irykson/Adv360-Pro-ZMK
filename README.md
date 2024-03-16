@@ -35,14 +35,33 @@ Certain ZMK features (e.g. combos) require knowing the exact key positions in th
 * Install make using `sudo apt-get install make` inside the WSL2 instance.
 * The repository can be cloned directly into the WSL2 instance or accessed through the C: mount point WSL provides by default (`/mnt/c/path-to-repo`).
 
-### Build firmware
+#### macOS specific
 
-1. Execute `make`.
-2. Check the `firmware` directory for the latest firmware build.
+On macOS [brew](https://brew.sh) can be used to install the required components.
+
+* docker
+* [colima](https://github.com/abiosoft/colima) can be used as the docker engine
+
+```shell
+brew install docker colima
+colima start
+```
+> Note: On Apple Silicon (ARM based) systems you need to make sure to start colima with the correct architecture for the container being used.
+> ```
+> colima start --arch x86_64
+> ```
+
+
+### Build firmware locally
+
+1. Execute `make` to build firmware for both halves or `make left` to only build firmware for the left hand side.
+2. Check the `firmware` directory for the latest firmware build. The first part of the filename is the timestamp when the firmware was built.
 
 ### Cleanup
 
-The built docker container and compiled firmware files can be deleted with `make clean`. This might be necessary if you updated your fork from V2.0 to V3.0 and are encountering build failures. 
+The built docker container and compiled firmware files can be deleted with `make clean`. This might be necessary if you updated your fork from V2.0 to V3.0 and are encountering build failures.
+
+Creating the docker container takes some time. Therefore `make clean_firmware` can be used to only clean firmware without removing the docker container. Similarly `make clean_image` can be used to remove the docker container without removing compiled firmware files.
 
 ## Flashing firmware
 
@@ -72,11 +91,19 @@ If you encounter a git conflict when updating your repository to V3.0 please fol
 
 Updating from V2.0 based firmwares to V3.0 based firmwares can be a rather complex process. There are reset files for every major firmware revision as well as documentation on the update process available [here](https://kinesis-ergo.com/support/kb360pro/#firmware-updates).
 
+## Versioning
+
+Starting on 11/15/2023 the Advantage 360 Pro will now automatically record the compilation date, branch and Git commit hash in a macro that can be accessed with Mod+V. This will type out the following string: YYYYMMDD-XXXX-YYYYYY, where XXXX is the first 4 characters of the Git branch and YYYYYY is the Git commit hash. In addition to this the builds compiled by GitHub actions are now timestamped and also record the commit hash in the filename. 
+
 ## Bluetooth LE Privacy
 
 Since the update on 20/10/2023, BLE privacy is now disabled by default and due to an update in upstream ZMK cannot be enabled again as it will cause issues for the split halves connecting to each other. 
 
 Recent updates to MacOS have improved the behaviour for devices without BLE privacy and caused regressions with privacy enabled (e.g. being unable to enter the password on the filevault screen) so BLE privacy is not necessary any more.
+
+## N-Key Rollover
+
+By default this keyboard has NKRO enabled, however for compatibility reasons the higher ranges are not enabled. If you want to use F13-F24 or the INTL1-9 keys with NKRO enabled you can change `CONFIG_ZMK_HID_KEYBOARD_EXTENDED_REPORT=n` to `CONFIG_ZMK_HID_KEYBOARD_EXTENDED_REPORT=y` in [adv360_left_defconfig](/config/boards/arm/adv360/adv360_left_defconfig#L65)
 
 ## Battery reporting
 
